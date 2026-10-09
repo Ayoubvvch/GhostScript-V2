@@ -33,34 +33,32 @@ jobs:
       - name: Prepare APK for Release
         run: |
           mkdir -p release-output
-          cp app/build/outputs/apk/debug/app-debug.apk release-output/GhostScript-v2.1.0.apk
+          cp app/build/outputs/apk/debug/app-debug.apk release-output/GhostScript-v2.2.0.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GhostScript-v2.1.0-APK
-          path: release-output/GhostScript-v2.1.0.apk
+          name: GhostScript-v2.2.0-APK
+          path: release-output/GhostScript-v2.2.0.apk
           if-no-files-found: error
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: v2.1.0
-          name: "GhostScript Root V2.1.0 - WindowManager Overlay & Trampoline Toast Edition"
+          tag_name: v2.2.0
+          name: "GhostScript Root V2.2.0 - Dual-Engine Distraction Scanner Edition"
           body: |
-            ### 👻 GhostScript Root V2.1.0: WindowManager Overlay & Trampoline Toast Edition
+            ### 👻 GhostScript Root V2.2.0: Dual-Engine Distraction Scanner Edition
 
-            - **Guaranteed Floating Overlay & Toast Bypass:**
-              - Fixes Android 11+ background toast suppression completely.
-              - Implements `ToastOverlayService` using `WindowManager` `TYPE_APPLICATION_OVERLAY` (identical to Termux-Toast architecture).
-              - Implements 0-ms transparent `ToastActivity` trampoline for native system toasts.
-              - Auto-grants `SYSTEM_ALERT_WINDOW` permission via root (`appops set com.ayoub.ghostscript2 SYSTEM_ALERT_WINDOW allow`).
-              - Enhanced `/data/local/tmp/toast "<message>"` CLI script triggering both overlay and toast.
-            - **Social Distraction Blocker (pm suspend):**
-              - Freezes social distractions during study sessions, preserving ChatGPT, Gemini, and browsers with full internet.
-            - **Wisdom & Quotes Messenger:**
-              - Displays quotes from Einstein, Marcus Aurelius, Ibn Khaldun, and custom phrases.
-          files: release-output/GhostScript-v2.1.0.apk
+            - **Dual-Engine Package Visibility & Discovery:**
+              - Added `QUERY_ALL_PACKAGES` permission in manifest.
+              - Implemented dual-engine package scanning (`PackageManager` + Root `pm list packages`).
+              - Instant recognition of TikTok (`com.zhiliaoapp.musically` and TikTok Lite `com.zhiliaoapp.musically.go`), Instagram, WhatsApp, Facebook, Messenger, YouTube, etc.
+              - Dynamic detection of present distraction apps with fallback friendly names and colorful badges.
+              - Preserves ChatGPT, Gemini, and study tools with full internet access.
+            - **Guaranteed Floating WindowManager Overlay & Toast:**
+              - High-priority floating AMOLED toast with glowing borders.
+          files: release-output/GhostScript-v2.2.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

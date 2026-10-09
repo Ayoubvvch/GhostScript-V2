@@ -175,6 +175,25 @@ class MainActivity : AppCompatActivity() {
             syncStateToJs()
         }
 
+        @JavascriptInterface
+        fun getDistractionAppsJson(): String {
+            return try {
+                val apps = taskManager.getInstalledDistractionApps()
+                val appsArr = JSONArray()
+                for (app in apps) {
+                    val o = JSONObject()
+                    o.put("packageName", app["packageName"])
+                    o.put("label", app["label"])
+                    o.put("isSuspended", app["isSuspended"])
+                    o.put("isKnownSocial", app["isKnownSocial"])
+                    appsArr.put(o)
+                }
+                appsArr.toString()
+            } catch (e: Exception) {
+                "[]"
+            }
+        }
+
         // ================= DISTRACTION BLOCKER =================
         @JavascriptInterface
         fun suspendDistractions(packagesJson: String, durationMinutes: Int, sendToast: Boolean) {

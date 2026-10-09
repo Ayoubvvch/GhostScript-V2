@@ -322,29 +322,126 @@ class TaskManager private constructor(private val context: Context) {
 
     fun getInstalledDistractionApps(): List<Map<String, Any>> {
         val pm = context.packageManager
-        val installed = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+        val discoveredPackages = mutableSetOf<String>()
+
+        // 1. Try PackageManager
+        try {
+            val installed = pm.getInstalledApplications(0)
+            for (app in installed) {
+                discoveredPackages.add(app.packageName)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "PackageManager getInstalledApplications error", e)
+        }
+
+        // 2. Guaranteed Root fallback via shell: pm list packages
+        try {
+            val shellOut = RootShell.exec("pm list packages")
+            for (line in shellOut.lines()) {
+                val pkg = line.removePrefix("package:").trim()
+                if (pkg.isNotBlank()) {
+                    discoveredPackages.add(pkg)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Root pm list packages error", e)
+        }
+
         val result = mutableListOf<Map<String, Any>>()
 
-        for (app in installed) {
-            val isKnown = knownDistractionPackages.contains(app.packageName)
-            val isUserApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) == 0
-            if (isKnown || (isUserApp && (app.packageName.contains("social") || app.packageName.contains("video") || app.packageName.contains("game")))) {
-                val label = try { pm.getApplicationLabel(app).toString() } catch (_: Exception) { app.packageName }
-                val isSuspended = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    try { pm.isPackageSuspended(app.packageName) } catch (_: Exception) { false }
-                } else false
+        for (pkg in discoveredPackages) {
+            val p = pkg.lowercase()
+
+            // Exclude system frameworks & self
+            if (pkg == "com.ayoub.ghostscript" || pkg == "com.ayoub.ghostscript2" ||
+                p.startsWith("android") || p.startsWith("com.android.internal")) {
+                continue
+            }
+
+            // Exclude study & AI apps (ChatGPT, Gemini, etc.)
+            if (p.contains("chatgpt") || p.contains("openai") || p.contains("gemini") ||
+                p.contains("bard") || p.contains("claude") || p.contains("obsidian") ||
+                p.contains("notion")) {
+                continue
+            }
+
+            // Match all distraction / social patterns (including TikTok normal & Lite zhiliaoapp)
+            val isDistraction = p.contains("zhiliao") ||
+                                p.contains("musically") ||
+                                p.contains("tiktok") ||
+                                p.contains("instagram") ||
+                                p.contains("whatsapp") ||
+                                p.contains("facebook") ||
+                                p.contains("katana") ||
+                                p.contains("orca") ||
+                                p.contains("messenger") ||
+                                p.contains("telegram") ||
+                                p.contains("youtube") ||
+                                p.contains("twitter") ||
+                                p.contains("snapchat") ||
+                                p.contains("reddit") ||
+                                p.contains("netflix") ||
+                                p.contains("discord") ||
+                                p.contains("twitch") ||
+                                p.contains("pinterest") ||
+                                p.contains("threads") ||
+                                p.contains("kwai") ||
+                                knownDistractionPackages.contains(pkg)
+
+            if (isDistraction) {
+                val label = getAppFriendlyLabel(pm, pkg)
+                val isSuspended = checkIsSuspended(pm, pkg)
 
                 result.add(mapOf(
-                    "packageName" to app.packageName,
+                    "packageName" to pkg,
                     "label" to label,
                     "isSuspended" to isSuspended,
-                    "isKnownSocial" to isKnown
+                    "isKnownSocial" to true
                 ))
             }
         }
 
-        // Sort: known social apps first
-        return result.sortedByDescending { it["isKnownSocial"] as Boolean }
+        return result.sortedBy { it["label"] as String }
+    }
+
+    private fun getAppFriendlyLabel(pm: PackageManager, pkg: String): String {
+        try {
+            val info = pm.getApplicationInfo(pkg, 0)
+            val l = pm.getApplicationLabel(info).toString()
+            if (l.isNotBlank() && l != pkg) return l
+        } catch (_: Exception) {}
+
+        val p = pkg.lowercase()
+        return when {
+            p == "com.zhiliaoapp.musically.go" -> "TikTok Lite"
+            p == "com.zhiliaoapp.musically" || p.contains("tiktok") -> "TikTok"
+            p == "com.whatsapp.w4b" -> "WhatsApp Business"
+            p == "com.whatsapp" -> "WhatsApp"
+            p == "com.facebook.katana" -> "Facebook"
+            p == "com.facebook.orca" -> "Messenger"
+            p == "com.instagram.android" -> "Instagram"
+            p == "org.telegram.messenger.web" -> "Telegram Web"
+            p.contains("telegram") -> "Telegram"
+            p == "com.google.android.youtube" -> "YouTube"
+            p == "com.google.android.apps.youtube.music" -> "YouTube Music"
+            p.contains("twitter") -> "X (Twitter)"
+            p.contains("snapchat") -> "Snapchat"
+            p.contains("reddit") -> "Reddit"
+            p.contains("netflix") -> "Netflix"
+            p.contains("pinterest") -> "Pinterest"
+            p.contains("discord") -> "Discord"
+            else -> pkg.substringAfterLast('.').replaceFirstChar { it.uppercase() }
+        }
+    }
+
+    private fun checkIsSuspended(pm: PackageManager, pkg: String): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            try {
+                return pm.isPackageSuspended(pkg)
+            } catch (_: Exception) {}
+        }
+        val out = RootShell.exec("dumpsys package $pkg | grep -i 'suspended=true'")
+        return out.isNotBlank()
     }
 
     fun startDistractionSuspendSession(

@@ -688,9 +688,12 @@
         </div>
 
         <!-- Apps to suspend -->
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
-          <label style="font-size: 0.78rem; font-weight: 700;">التطبيقات المحددة للتجميد:</label>
-          <button style="background: none; border: none; color: #38bdf8; font-size: 0.72rem; cursor: pointer;" onclick="toggleSelectAllApps()">تحديد الكل / إلغاء</button>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; margin-bottom: 6px;">
+          <label style="font-size: 0.8rem; font-weight: 700;">التطبيقات المكتشفة للتجميد:</label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button style="background: none; border: none; color: #c084fc; font-size: 0.74rem; font-weight: 700; cursor: pointer;" onclick="refreshAppsList()">🔄 تحديث القائمة</button>
+            <button style="background: none; border: none; color: #38bdf8; font-size: 0.74rem; font-weight: 600; cursor: pointer;" onclick="toggleSelectAllApps()">تحديد الكل</button>
+          </div>
         </div>
 
         <div class="app-list-box" id="distractionAppsList">
@@ -909,15 +912,29 @@
         if (storedQuotes) { cachedQuotes = JSON.parse(storedQuotes); renderQuotes(); }
       } catch (e) {}
 
-      if (window.GhostNative && window.GhostNative.getInitialState) {
-        try {
-          const raw = window.GhostNative.getInitialState();
-          applyState(JSON.parse(raw));
-        } catch (e) {}
+      if (window.GhostNative) {
+        if (window.GhostNative.getDistractionAppsJson) {
+          try {
+            const rawApps = window.GhostNative.getDistractionAppsJson();
+            const apps = JSON.parse(rawApps);
+            if (apps && apps.length > 0) {
+              cachedApps = apps;
+              localStorage.setItem('ghost2_apps', JSON.stringify(cachedApps));
+              renderApps();
+            }
+          } catch (e) {}
+        }
+        if (window.GhostNative.getInitialState) {
+          try {
+            const raw = window.GhostNative.getInitialState();
+            applyState(JSON.parse(raw));
+          } catch (e) {}
+        }
       }
     }
 
     hydrateFrameZero();
+    setTimeout(refreshAppsList, 300);
 
     window.onGhostStateReceived = function(stateJsonStr) {
       try {
@@ -941,7 +958,7 @@
         renderTasks();
       }
 
-      if (state.distractionApps) {
+      if (state.distractionApps && state.distractionApps.length > 0) {
         cachedApps = state.distractionApps;
         localStorage.setItem('ghost2_apps', JSON.stringify(cachedApps));
         renderApps();
@@ -960,6 +977,9 @@
       const target = document.getElementById(`view-${tabId}`);
       if (target) target.classList.add('active');
       if (el) el.classList.add('active');
+      if (tabId === 'focus' && (!cachedApps || cachedApps.length === 0)) {
+        refreshAppsList();
+      }
     }
 
     function selectFocusDuration(mins, btn) {
@@ -983,34 +1003,90 @@
       btn.classList.add('selected');
     }
 
+    function getAppVisual(app) {
+      const p = (app.packageName || '').toLowerCase();
+      if (p.includes('zhiliao') || p.includes('musically') || p.includes('tiktok')) {
+        return { icon: '🎵', bg: 'rgba(244, 63, 94, 0.2)', color: '#fb7185' };
+      }
+      if (p.includes('instagram')) {
+        return { icon: '📸', bg: 'rgba(168, 85, 247, 0.2)', color: '#c084fc' };
+      }
+      if (p.includes('whatsapp')) {
+        return { icon: '💬', bg: 'rgba(16, 185, 129, 0.2)', color: '#34d399' };
+      }
+      if (p.includes('facebook') || p.includes('katana') || p.includes('orca') || p.includes('messenger')) {
+        return { icon: '👥', bg: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' };
+      }
+      if (p.includes('youtube')) {
+        return { icon: '🎥', bg: 'rgba(239, 68, 68, 0.2)', color: '#f87171' };
+      }
+      if (p.includes('telegram')) {
+        return { icon: '✈️', bg: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' };
+      }
+      if (p.includes('netflix')) {
+        return { icon: '🍿', bg: 'rgba(220, 38, 38, 0.2)', color: '#ef4444' };
+      }
+      if (p.includes('pinterest')) {
+        return { icon: '📌', bg: 'rgba(236, 72, 153, 0.2)', color: '#f472b6' };
+      }
+      return { icon: (app.label || '📱').substring(0, 1).toUpperCase(), bg: 'rgba(148, 163, 184, 0.2)', color: '#cbd5e1' };
+    }
+
     function renderApps() {
       const container = document.getElementById('distractionAppsList');
       if (!container) return;
 
-      if (cachedApps.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem;">جاري قراءة التطبيقات...</div>`;
+      if (!cachedApps || cachedApps.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 22px 16px; color: var(--text-muted); font-size: 0.85rem;">
+            <p style="margin-bottom: 12px;">جاري فحص وتحديث قائمة التطبيقات...</p>
+            <button class="chip-btn" style="display: inline-block; padding: 8px 18px; border-color: #38bdf8; color: #38bdf8;" onclick="refreshAppsList()">
+              🔄 فحص التطبيقات الآن
+            </button>
+          </div>
+        `;
         return;
       }
 
       container.innerHTML = cachedApps.map((app, idx) => {
         const isSuspended = app.isSuspended;
-        const initial = (app.label || app.packageName).substring(0, 1).toUpperCase();
+        const visual = getAppVisual(app);
         return `
           <div class="app-item" onclick="toggleAppCheckbox('${app.packageName}')">
             <div class="app-meta">
               <input type="checkbox" id="chk-${app.packageName}" value="${app.packageName}" ${isSuspended ? '' : 'checked'} onclick="event.stopPropagation()">
-              <div class="app-icon-dummy">${initial}</div>
+              <div class="app-icon-dummy" style="background: ${visual.bg}; color: ${visual.color};">${visual.icon}</div>
               <div>
                 <div class="app-name-text">${app.label}</div>
                 <div class="app-pkg-text">${app.packageName}</div>
               </div>
             </div>
             <div>
-              ${isSuspended ? '<span class="app-tag" style="background: rgba(244,63,94,0.2); color:#fb7185;">معلق حالياً</span>' : '<span class="app-tag" style="background: rgba(16,185,129,0.15); color:#34d399;">نشط</span>'}
+              ${isSuspended ? '<span class="app-tag" style="background: rgba(244,63,94,0.25); color:#fb7185;">معلق حالياً</span>' : '<span class="app-tag" style="background: rgba(16,185,129,0.18); color:#34d399;">نشط</span>'}
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function refreshAppsList() {
+      if (window.GhostNative && window.GhostNative.getDistractionAppsJson) {
+        try {
+          const raw = window.GhostNative.getDistractionAppsJson();
+          const apps = JSON.parse(raw);
+          if (apps && apps.length > 0) {
+            cachedApps = apps;
+            localStorage.setItem('ghost2_apps', JSON.stringify(cachedApps));
+            renderApps();
+            showToast(`تم اكتشاف ${apps.length} تطبيق مشتت 📱`);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      if (window.GhostNative && window.GhostNative.requestRefresh) {
+        window.GhostNative.requestRefresh();
+      }
     }
 
     function toggleAppCheckbox(pkg) {
