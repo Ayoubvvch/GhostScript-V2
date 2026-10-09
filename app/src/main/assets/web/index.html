@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>GhostScript V2</title>
+  <style>
+    :root {
+      --bg: #070a12;
+      --card-bg: #101626;
+      --card-hover: #161e33;
+      --border: #1e293b;
+      --border-glow: rgba(56, 189, 248, 0.25);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.4);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.3);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.3);
+      --rose: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.3);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 95px;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(7, 10, 18, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #9333ea);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--purple-glow);
+      position: relative;
+    }
+
+    .brand-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2;
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(to left, #38bdf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .v2-badge {
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: #7c3aed;
+      color: #fff;
+      -webkit-text-fill-color: #fff;
+      box-shadow: 0 0 8px var(--purple-glow);
+    }
+
+    .brand-text p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .root-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .root-badge.not-root {
+      background: rgba(244, 63, 94, 0.12);
+      border-color: rgba(244, 63, 94, 0.3);
+      color: #fb7185;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.92);
+      background: var(--border);
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* Bottom Navigation */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(16, 22, 38, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 6px 0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.2s ease;
+    }
+
+    .nav-item.active {
+      color: #c084fc;
+    }
+
+    .nav-item.active svg {
+      transform: translateY(-2px);
+      stroke: #c084fc;
+    }
+
+    .nav-badge-count {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background: var(--rose);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: bold;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px var(--rose-glow);
+    }
+
+    /* Container */
+    .container {
+      padding: 18px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .view {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--primary);
+      stroke-width: 2;
+    }
+
+    /* Chips */
+    .chips-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 14px 0;
+    }
+
+    .chip-btn {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 10px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip-btn:active {
+      transform: scale(0.94);
+    }
+
+    .chip-btn.selected {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(56, 189, 248, 0.3));
+      border-color: #c084fc;
+      color: #fff;
+      box-shadow: 0 0 16px var(--purple-glow);
+    }
+
+    /* App Selection List */
+    .app-list-box {
+      max-height: 260px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      background: rgba(10, 15, 28, 0.5);
+      padding: 8px;
+      margin: 14px 0;
+    }
+
+    .app-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 10px;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .app-item:hover, .app-item:active {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .app-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-icon-dummy {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(168, 85, 247, 0.2);
+      color: #c084fc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    .app-name-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .app-pkg-text {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .app-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      margin-right: 6px;
+    }
+
+    /* Big buttons */
+    .btn-launch {
+      width: 100%;
+      background: linear-gradient(135deg, #7c3aed, #0284c7);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px var(--purple-glow);
+      transition: all 0.2s ease;
+    }
+
+    .btn-launch:active {
+      transform: scale(0.98);
+      filter: brightness(1.1);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+      box-shadow: none;
+      margin-top: 10px;
+    }
+
+    /* Input fields */
+    .input-field {
+      width: 100%;
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.92rem;
+      padding: 12px 14px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .input-field:focus {
+      border-color: #c084fc;
+    }
+
+    /* Quotes list */
+    .quote-card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .quote-content {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      flex: 1;
+    }
+
+    .quote-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Active Tasks */
+    .task-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .task-card.running {
+      border-color: rgba(168, 85, 247, 0.4);
+      box-shadow: 0 4px 18px rgba(168, 85, 247, 0.12);
+    }
+
+    .task-card.running::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #c084fc, #38bdf8);
+    }
+
+    .task-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .task-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .task-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+    }
+
+    .task-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .task-pid {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .status-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .status-running {
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-running .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #c084fc;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.3; }
+    }
+
+    .task-countdown {
+      font-size: 1.35rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: #fff;
+      margin: 8px 0;
+    }
+
+    .btn-stop-task {
+      width: 100%;
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #fb7185;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .btn-stop-task:active {
+      background: var(--rose);
+      color: #fff;
+    }
+
+    /* CLI box */
+    .cli-box {
+      background: #05080e;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #38bdf8;
+      margin-top: 10px;
+      direction: ltr;
+      text-align: left;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 85px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(16, 22, 38, 0.95);
+      border: 1px solid #c084fc;
+      box-shadow: 0 4px 20px var(--purple-glow);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2a5 5 0 0 0-5 5v3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2v3l3-1 2 1 2-1 3 1v-3a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2V7a5 5 0 0 0-5-5z"></path>
+          <circle cx="10" cy="9" r="1.2" fill="#fff"></circle>
+          <circle cx="14" cy="9" r="1.2" fill="#fff"></circle>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>GhostScript <span class="v2-badge">V2</span></h1>
+        <p>تجميد المشتتات • تواصل Toast • مهام شبحية</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div id="rootPill" class="root-badge">
+        <span>●</span> ROOT نشط
+      </div>
+      <button class="icon-btn" onclick="triggerRefresh()" title="تحديث">
+        <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <div class="container">
+
+    <!-- VIEW 1: تجميد المشتتات (Social Distraction Blocker) -->
+    <section id="view-focus" class="view active">
+      <div class="card">
+        <div class="card-title-row">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            تجميد المشتتات للدراسة والتركيز
+          </div>
+        </div>
+
+        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+          يتم تعليق تطبيقات التواصل (YouTube, Telegram, TikTok, Instagram...) عبر ميزة <strong style="color: #38bdf8;">pm suspend</strong> الآمنة. 
+          تطبيقات الدراسة مثل <strong>ChatGPT و Gemini</strong> والمتصفحات تبقى تعمل بكامل سرعة الإنترنت!
+        </p>
+
+        <!-- Focus duration -->
+        <label style="font-size: 0.78rem; font-weight: 700; color: #c084fc;">مدة جلسة التركيز والتجميد:</label>
+        <div class="chips-grid">
+          <button class="chip-btn" onclick="selectFocusDuration(15, this)">15 د</button>
+          <button class="chip-btn selected" onclick="selectFocusDuration(30, this)">30 د</button>
+          <button class="chip-btn" onclick="selectFocusDuration(45, this)">45 د</button>
+          <button class="chip-btn" onclick="selectFocusDuration(60, this)">60 د</button>
+          <button class="chip-btn" onclick="selectFocusDuration(90, this)">90 د</button>
+          <button class="chip-btn" onclick="selectFocusDuration(120, this)">ساعتين</button>
+          <button class="chip-btn" onclick="selectFocusDuration(0, this)">دائم</button>
+          <button class="chip-btn" onclick="toggleCustomFocus(this)">مخصص</button>
+        </div>
+
+        <div id="customFocusBox" style="display: none; margin-bottom: 10px;">
+          <input type="number" id="customFocusInput" class="input-field" placeholder="المدة بالدقائق" min="1" max="600">
+        </div>
+
+        <!-- Apps to suspend -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+          <label style="font-size: 0.78rem; font-weight: 700;">التطبيقات المحددة للتجميد:</label>
+          <button style="background: none; border: none; color: #38bdf8; font-size: 0.72rem; cursor: pointer;" onclick="toggleSelectAllApps()">تحديد الكل / إلغاء</button>
+        </div>
+
+        <div class="app-list-box" id="distractionAppsList">
+          <!-- Loaded dynamically -->
+        </div>
+
+        <button class="btn-launch" onclick="launchDistractionBlocker()">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          تجميد المشتتات وبدء جلسة التركيز
+        </button>
+
+        <button class="btn-launch btn-secondary" onclick="unsuspendAllNow()">
+          🔓 إلغاء تجميد جميع التطبيقات فوراً
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 2: متحدث TOAST والحكمة (Toast & Wisdom Messenger) -->
+    <section id="view-toast" class="view">
+      <div class="card">
+        <div class="card-title-row">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            مُتحدث Toast والحكمة على الشاشة
+          </div>
+        </div>
+
+        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px;">
+          إطلاق رسائل Toast مباشرة فوق أي تطبيق أو على الشاشة الرئيسية، للتواصل مع السكريبتات وإرسال عبارات أينشتاين والحكماء.
+        </p>
+
+        <!-- Direct Toast Sender -->
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">كتابة رسالة Toast مخصصة:</label>
+          <input type="text" id="customToastMessageInput" class="input-field" placeholder="مثلاً: Einstein Said: Genius is 1% talent...">
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-launch" style="flex: 1;" onclick="sendDirectToast()">
+              🚀 إرسال Toast للشاشة
+            </button>
+            <button class="btn-launch" style="flex: 1; background: #6366f1;" onclick="sendRandomWisdom()">
+              💡 حكمة عشوائية الآن
+            </button>
+          </div>
+        </div>
+
+        <!-- CLI info -->
+        <label style="font-size: 0.78rem; font-weight: 700; color: #c084fc;">استدعاء Toast من أي سكريبت أو شيل:</label>
+        <div class="cli-box">
+          # استخدام الأمر المباشر في الشيل أو الروت:<br>
+          toast "Einstein said: Imagination is everything"<br><br>
+          # أو عبر Broadcast:<br>
+          am broadcast -a com.ayoub.ghostscript2.SHOW_TOAST --es text "رسالتك"
+        </div>
+      </div>
+
+      <!-- Wisdom quotes list -->
+      <div class="card">
+        <div class="card-title-row">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            مكتبة الحكم والاقتباسات العظيمة
+          </div>
+          <button class="icon-btn" style="width: auto; padding: 0 12px; font-size: 0.75rem;" onclick="promptNewQuote()">+ عبارة جديدة</button>
+        </div>
+
+        <div id="wisdomQuotesContainer">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: مؤقت النوم (Sleep Timer) -->
+    <section id="view-sleep" class="view">
+      <div class="card">
+        <div class="card-title-row">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            مؤقت النوم الذكي (إطفاء الشاشة)
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 10px 0;">
+          <div style="font-size: 3rem; font-weight: 900; color: #fff;">
+            <span id="selectedSleepText">30</span> <span style="font-size: 1rem; color: #38bdf8;">دقيقة</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted);">0% استهلاك أثناء النوم • إطفاء مؤكد للشاشة</p>
+        </div>
+
+        <div class="chips-grid">
+          <button class="chip-btn" onclick="selectSleepDuration(10, this)">10 د</button>
+          <button class="chip-btn" onclick="selectSleepDuration(15, this)">15 د</button>
+          <button class="chip-btn selected" onclick="selectSleepDuration(30, this)">30 د</button>
+          <button class="chip-btn" onclick="selectSleepDuration(45, this)">45 د</button>
+          <button class="chip-btn" onclick="selectSleepDuration(60, this)">60 د</button>
+          <button class="chip-btn" onclick="selectSleepDuration(90, this)">90 د</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin: 14px 0;">
+          <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px;">
+            <span>🎵 إيقاف تشغيل الوسائط والصوت فوراً</span>
+            <input type="checkbox" id="sleepPauseMedia" checked>
+          </label>
+          <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px;">
+            <span>📶 إيقاف الـ Wi-Fi لحفظ البطارية</span>
+            <input type="checkbox" id="sleepWifi">
+          </label>
+          <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px;">
+            <span>🔵 إيقاف البلوتوث لفصل السماعات</span>
+            <input type="checkbox" id="sleepBt">
+          </label>
+        </div>
+
+        <button class="btn-launch" onclick="launchSleepTimer()">
+          🌙 بدء مؤقت النوم
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 4: المهام النشطة والسجل (Active Tasks) -->
+    <section id="view-tasks" class="view">
+      <div class="card-title-row" style="margin-bottom: 12px;">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          المهام النشطة في الخلفية
+        </div>
+      </div>
+
+      <div id="activeTasksContainer"></div>
+
+      <div class="card-title-row" style="margin: 24px 0 12px;">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+          سجل المهام السابقة
+        </div>
+        <button class="icon-btn" style="width: auto; padding: 0 12px; font-size: 0.75rem;" onclick="clearHistory()">مسح السجل</button>
+      </div>
+
+      <div id="historyTasksContainer"></div>
+    </section>
+
+    <!-- VIEW 5: سكريبتات سريعة ومخصصة (Presets & Custom) -->
+    <section id="view-presets" class="view">
+      <div class="card-title-row">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"></polygon></svg>
+          سكريبتات النظام الذكية
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
+        <div class="card" style="padding: 14px; margin-bottom: 0;">
+          <h4 style="font-size: 0.92rem; margin-bottom: 4px;">⚡ تنظيف الكاش والـ RAM</h4>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">تفريغ PageCache عبر drop_caches</p>
+          <button class="chip-btn" style="width: 100%; border-color: #38bdf8;" onclick="runBuiltin('ram_purge', 0)">تشغيل فوري</button>
+        </div>
+
+        <div class="card" style="padding: 14px; margin-bottom: 0;">
+          <h4 style="font-size: 0.92rem; margin-bottom: 4px;">🛑 إنهاء تطبيقات الخلفية المعلقة</h4>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">قتل العمليات الخاملة عبر am kill-all</p>
+          <button class="chip-btn" style="width: 100%; border-color: #f43f5e;" onclick="runBuiltin('kill_background', 0)">تشغيل فوري</button>
+        </div>
+
+        <div class="card" style="padding: 14px; margin-bottom: 0;">
+          <h4 style="font-size: 0.92rem; margin-bottom: 4px;">🔌 إيقاف تشغيل الهاتف بعد 60 دقيقة</h4>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">إغلاق الهاتف تماماً بعد النوم</p>
+          <button class="chip-btn" style="width: 100%; border-color: #a855f7;" onclick="runBuiltin('power_off', 3600)">جدولة بعد 60 دقيقة</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav>
+    <div class="nav-item active" onclick="switchTab('focus', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      <span>تجميد المشتتات</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('toast', this)">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      <span>تواصل Toast</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('sleep', this)">
+      <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <span>مؤقت النوم</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('tasks', this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <span id="navTaskCount" class="nav-badge-count" style="display: none;">0</span>
+      <span>المهام</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('presets', this)">
+      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor"></polygon></svg>
+      <span>النظام</span>
+    </div>
+  </nav>
+
+  <!-- Toast Element -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let currentFocusMinutes = 30;
+    let currentSleepMinutes = 30;
+    let cachedTasks = [];
+    let cachedApps = [];
+    let cachedQuotes = [];
+    let isRootActive = true;
+
+    function hydrateFrameZero() {
+      try {
+        const storedTasks = localStorage.getItem('ghost2_tasks');
+        const storedApps = localStorage.getItem('ghost2_apps');
+        const storedQuotes = localStorage.getItem('ghost2_quotes');
+        if (storedTasks) { cachedTasks = JSON.parse(storedTasks); renderTasks(); }
+        if (storedApps) { cachedApps = JSON.parse(storedApps); renderApps(); }
+        if (storedQuotes) { cachedQuotes = JSON.parse(storedQuotes); renderQuotes(); }
+      } catch (e) {}
+
+      if (window.GhostNative && window.GhostNative.getInitialState) {
+        try {
+          const raw = window.GhostNative.getInitialState();
+          applyState(JSON.parse(raw));
+        } catch (e) {}
+      }
+    }
+
+    hydrateFrameZero();
+
+    window.onGhostStateReceived = function(stateJsonStr) {
+      try {
+        applyState(JSON.parse(stateJsonStr));
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    function applyState(state) {
+      if (state.isRoot !== undefined) {
+        isRootActive = state.isRoot;
+        const pill = document.getElementById('rootPill');
+        pill.className = isRootActive ? 'root-badge' : 'root-badge not-root';
+        pill.innerHTML = isRootActive ? '<span>●</span> ROOT نشط' : '<span>●</span> غير مروت';
+      }
+
+      if (state.tasks) {
+        cachedTasks = state.tasks;
+        localStorage.setItem('ghost2_tasks', JSON.stringify(cachedTasks));
+        renderTasks();
+      }
+
+      if (state.distractionApps) {
+        cachedApps = state.distractionApps;
+        localStorage.setItem('ghost2_apps', JSON.stringify(cachedApps));
+        renderApps();
+      }
+
+      if (state.wisdomQuotes) {
+        cachedQuotes = state.wisdomQuotes;
+        localStorage.setItem('ghost2_quotes', JSON.stringify(cachedQuotes));
+        renderQuotes();
+      }
+    }
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const target = document.getElementById(`view-${tabId}`);
+      if (target) target.classList.add('active');
+      if (el) el.classList.add('active');
+    }
+
+    function selectFocusDuration(mins, btn) {
+      currentFocusMinutes = mins;
+      document.querySelectorAll('#view-focus .chip-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('customFocusBox').style.display = 'none';
+    }
+
+    function toggleCustomFocus(btn) {
+      document.querySelectorAll('#view-focus .chip-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('customFocusBox').style.display = 'block';
+      document.getElementById('customFocusInput').focus();
+    }
+
+    function selectSleepDuration(mins, btn) {
+      currentSleepMinutes = mins;
+      document.getElementById('selectedSleepText').innerText = mins;
+      document.querySelectorAll('#view-sleep .chip-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function renderApps() {
+      const container = document.getElementById('distractionAppsList');
+      if (!container) return;
+
+      if (cachedApps.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem;">جاري قراءة التطبيقات...</div>`;
+        return;
+      }
+
+      container.innerHTML = cachedApps.map((app, idx) => {
+        const isSuspended = app.isSuspended;
+        const initial = (app.label || app.packageName).substring(0, 1).toUpperCase();
+        return `
+          <div class="app-item" onclick="toggleAppCheckbox('${app.packageName}')">
+            <div class="app-meta">
+              <input type="checkbox" id="chk-${app.packageName}" value="${app.packageName}" ${isSuspended ? '' : 'checked'} onclick="event.stopPropagation()">
+              <div class="app-icon-dummy">${initial}</div>
+              <div>
+                <div class="app-name-text">${app.label}</div>
+                <div class="app-pkg-text">${app.packageName}</div>
+              </div>
+            </div>
+            <div>
+              ${isSuspended ? '<span class="app-tag" style="background: rgba(244,63,94,0.2); color:#fb7185;">معلق حالياً</span>' : '<span class="app-tag" style="background: rgba(16,185,129,0.15); color:#34d399;">نشط</span>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleAppCheckbox(pkg) {
+      const chk = document.getElementById(`chk-${pkg}`);
+      if (chk) chk.checked = !chk.checked;
+    }
+
+    let allSelected = true;
+    function toggleSelectAllApps() {
+      allSelected = !allSelected;
+      document.querySelectorAll('#distractionAppsList input[type="checkbox"]').forEach(c => c.checked = allSelected);
+    }
+
+    function launchDistractionBlocker() {
+      let duration = currentFocusMinutes;
+      const customVal = parseInt(document.getElementById('customFocusInput').value, 10);
+      if (document.getElementById('customFocusBox').style.display !== 'none' && customVal > 0) {
+        duration = customVal;
+      }
+
+      const selectedPkgs = [];
+      document.querySelectorAll('#distractionAppsList input[type="checkbox"]:checked').forEach(c => {
+        selectedPkgs.push(c.value);
+      });
+
+      if (selectedPkgs.length === 0) {
+        showToast('يرجى تحديد تطبيق واحد على الأقل للتجميد');
+        return;
+      }
+
+      if (window.GhostNative && window.GhostNative.suspendDistractions) {
+        window.GhostNative.suspendDistractions(JSON.stringify(selectedPkgs), duration, true);
+        showToast(`تم تجميد ${selectedPkgs.length} تطبيق بنجاح 🛡️`);
+        switchTab('tasks', document.querySelectorAll('.nav-item')[3]);
+      }
+    }
+
+    function unsuspendAllNow() {
+      if (window.GhostNative && window.GhostNative.unsuspendAllDistractions) {
+        window.GhostNative.unsuspendAllDistractions();
+        showToast('تم إلغاء تجميد جميع التطبيقات 🔓');
+      }
+    }
+
+    function sendDirectToast() {
+      const msg = document.getElementById('customToastMessageInput').value.trim();
+      if (!msg) {
+        showToast('يرجى كتابة الرسالة أولاً');
+        return;
+      }
+      if (window.GhostNative && window.GhostNative.sendCustomToast) {
+        window.GhostNative.sendCustomToast(msg);
+        showToast('تم إرسال Toast إلى الشاشة 🚀');
+      }
+    }
+
+    function sendRandomWisdom() {
+      if (window.GhostNative && window.GhostNative.sendRandomWisdomToast) {
+        window.GhostNative.sendRandomWisdomToast();
+        showToast('تم إرسال حكمة ملهمة إلى الشاشة 💡');
+      }
+    }
+
+    function renderQuotes() {
+      const container = document.getElementById('wisdomQuotesContainer');
+      if (!container) return;
+
+      container.innerHTML = cachedQuotes.map((q, idx) => `
+        <div class="quote-card">
+          <div class="quote-content">${q}</div>
+          <div class="quote-actions">
+            <button class="icon-btn" style="width: 32px; height: 32px; color: #c084fc;" title="تجربة Toast" onclick="testQuote('${encodeURIComponent(q)}')">
+              🚀
+            </button>
+            <button class="icon-btn" style="width: 32px; height: 32px; color: #fb7185;" title="حذف" onclick="deleteQuote('${encodeURIComponent(q)}')">
+              ✕
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function testQuote(encoded) {
+      const q = decodeURIComponent(encoded);
+      if (window.GhostNative && window.GhostNative.sendCustomToast) {
+        window.GhostNative.sendCustomToast(q);
+      }
+    }
+
+    function deleteQuote(encoded) {
+      const q = decodeURIComponent(encoded);
+      if (window.GhostNative && window.GhostNative.deleteWisdomQuote) {
+        window.GhostNative.deleteWisdomQuote(q);
+        showToast('تم حذف العبارة');
+      }
+    }
+
+    function promptNewQuote() {
+      const quote = prompt('أدخل العبارة أو الحكمة الجديدة:');
+      if (quote && quote.trim()) {
+        if (window.GhostNative && window.GhostNative.addWisdomQuote) {
+          window.GhostNative.addWisdomQuote(quote.trim());
+          showToast('تمت إضافة العبارة 💡');
+        }
+      }
+    }
+
+    function launchSleepTimer() {
+      const opts = {
+        pauseMedia: document.getElementById('sleepPauseMedia').checked,
+        turnOffWifi: document.getElementById('sleepWifi').checked,
+        turnOffBluetooth: document.getElementById('sleepBt').checked
+      };
+
+      if (window.GhostNative && window.GhostNative.startSleepTimer) {
+        window.GhostNative.startSleepTimer(currentSleepMinutes, JSON.stringify(opts));
+        showToast(`تم إطلاق سكريبت إطفاء الشاشة بعد ${currentSleepMinutes} دقيقة 🌙`);
+        switchTab('tasks', document.querySelectorAll('.nav-item')[3]);
+      }
+    }
+
+    function renderTasks() {
+      const activeContainer = document.getElementById('activeTasksContainer');
+      const historyContainer = document.getElementById('historyTasksContainer');
+      const navBadge = document.getElementById('navTaskCount');
+
+      const running = cachedTasks.filter(t => t.status === 'RUNNING');
+      const history = cachedTasks.filter(t => t.status !== 'RUNNING');
+
+      if (running.length > 0) {
+        navBadge.style.display = 'flex';
+        navBadge.innerText = running.length;
+      } else {
+        navBadge.style.display = 'none';
+      }
+
+      if (running.length === 0) {
+        activeContainer.innerHTML = `<div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.85rem;">لا توجد مهام نشطة حالياً.</div>`;
+      } else {
+        activeContainer.innerHTML = running.map(t => {
+          const now = Date.now();
+          const remainingSec = Math.max(0, Math.floor((t.targetTime - now) / 1000));
+          const minsLeft = Math.floor(remainingSec / 60);
+          const secsLeft = remainingSec % 60;
+          const display = t.delaySeconds > 0 ? (minsLeft > 0 ? `${minsLeft} د و ${secsLeft} ثانية متبقية` : `${secsLeft} ثانية متبقية`) : 'نشط دائماً';
+
+          return `
+            <div class="task-card running">
+              <div class="task-header">
+                <div class="task-title-group">
+                  <div class="task-avatar">⚡</div>
+                  <div>
+                    <div class="task-name">${t.title}</div>
+                    <div class="task-pid">PID: ${t.pid > 0 ? t.pid : 'نشط'}</div>
+                  </div>
+                </div>
+                <div class="status-pill status-running"><span class="dot"></span> جاري التنفيذ</div>
+              </div>
+              <div class="task-countdown">${display}</div>
+              <button class="btn-stop-task" onclick="stopTask('${t.id}')">
+                إيقاف السكريبت وإلغاء التجميد
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (history.length === 0) {
+        historyContainer.innerHTML = `<div style="text-align: center; padding: 14px; color: var(--text-muted); font-size: 0.8rem;">لا توجد مهام منتهية مسجلة.</div>`;
+      } else {
+        historyContainer.innerHTML = history.slice(0, 8).map(t => `
+          <div class="task-card" style="padding: 10px 14px;">
+            <div class="task-header" style="margin-bottom: 0;">
+              <div>
+                <div style="font-size: 0.88rem; font-weight: 600;">${t.title}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted);">${t.status}</div>
+              </div>
+              <button class="icon-btn" style="width: 28px; height: 28px; color: #fb7185;" onclick="deleteTask('${t.id}')">✕</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function stopTask(id) {
+      if (window.GhostNative && window.GhostNative.stopTask) {
+        window.GhostNative.stopTask(id);
+        showToast('تم إيقاف المهمة بنجاح 🛑');
+      }
+    }
+
+    function deleteTask(id) {
+      if (window.GhostNative && window.GhostNative.deleteTask) {
+        window.GhostNative.deleteTask(id);
+      }
+    }
+
+    function clearHistory() {
+      if (window.GhostNative && window.GhostNative.clearHistory) {
+        window.GhostNative.clearHistory();
+        showToast('تم مسح السجل');
+      }
+    }
+
+    function runBuiltin(type, delay) {
+      if (window.GhostNative && window.GhostNative.startBuiltin) {
+        window.GhostNative.startBuiltin(type, delay);
+        showToast('تم إطلاق المهمة ⚡');
+        switchTab('tasks', document.querySelectorAll('.nav-item')[3]);
+      }
+    }
+
+    function triggerRefresh() {
+      if (window.GhostNative && window.GhostNative.requestRefresh) {
+        window.GhostNative.requestRefresh();
+        showToast('جاري التحديث...');
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    setInterval(() => {
+      const running = cachedTasks.filter(t => t.status === 'RUNNING');
+      if (running.length > 0) renderTasks();
+    }, 1000);
+  </script>
+</body>
+</html>
