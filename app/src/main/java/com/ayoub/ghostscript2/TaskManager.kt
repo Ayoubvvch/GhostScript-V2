@@ -462,8 +462,11 @@ class TaskManager private constructor(private val context: Context) {
     // ==================== TOAST & WISDOM MESSENGER ====================
 
     fun sendToast(message: String) {
+        try {
+            ToastOverlayService.show(context, message)
+        } catch (_: Exception) {}
         val safe = message.replace("\"", "\\\"")
-        RootShell.exec("am broadcast -a com.ayoub.ghostscript2.SHOW_TOAST --es text \"$safe\"")
+        RootShell.exec("am start -n com.ayoub.ghostscript2/.ToastActivity --es text \"$safe\" --activity-no-animation || true")
     }
 
     fun sendRandomWisdomToast() {

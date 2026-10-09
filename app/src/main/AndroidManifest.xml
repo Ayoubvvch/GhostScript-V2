@@ -46,6 +46,26 @@
             </intent-filter>
         </receiver>
 
+        <!-- 1-millisecond Translucent Foreground Trampoline Activity to bypass Android 11+ background toast restrictions -->
+        <activity
+            android:name=".ToastActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:launchMode="singleInstance"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="com.ayoub.ghostscript2.SHOW_TOAST_ACT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Floating WindowManager Overlay Service (Termux-Toast replacement via SYSTEM_ALERT_WINDOW) -->
+        <service
+            android:name=".ToastOverlayService"
+            android:exported="true" />
+
     </application>
 
 </manifest>

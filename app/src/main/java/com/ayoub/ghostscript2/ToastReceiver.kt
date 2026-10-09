@@ -48,18 +48,27 @@ class ToastReceiver : BroadcastReceiver() {
         }
 
         val messageToShow = text
-        Log.i(TAG, "Displaying message via Toast & Notification: $messageToShow")
+        Log.i(TAG, "Displaying message via Toast Overlay, Activity & Notification: $messageToShow")
 
-        // 1. Show Toast on Main Thread
-        Handler(Looper.getMainLooper()).post {
-            try {
-                Toast.makeText(context.applicationContext, messageToShow, Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Log.e(TAG, "Error displaying Toast", e)
-            }
+        // 1. Show guaranteed floating WindowManager overlay
+        try {
+            ToastOverlayService.show(context, messageToShow)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error launching ToastOverlayService", e)
         }
 
-        // 2. Also Post Notification
+        // 2. Also Launch 0-ms Trampoline Activity to trigger native system Toast
+        try {
+            val actIntent = Intent(context, ToastActivity::class.java).apply {
+                putExtra("text", messageToShow)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            }
+            context.startActivity(actIntent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error launching ToastActivity", e)
+        }
+
+        // 3. Post Notification backup
         try {
             showNotification(context, messageToShow)
         } catch (e: Exception) {

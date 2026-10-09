@@ -76,17 +76,28 @@ object RootShell {
      */
     fun setupCliToastWrapper(context: Context) {
         try {
+            // Automatically grant SYSTEM_ALERT_WINDOW via root so overlay works without prompting user
+            exec("appops set com.ayoub.ghostscript2 SYSTEM_ALERT_WINDOW allow || true")
+            exec("pm grant com.ayoub.ghostscript2 android.permission.SYSTEM_ALERT_WINDOW || true")
+
             val scriptContent = """
 #!/system/bin/sh
 MSG="${'$'}*"
 if [ -z "${'$'}MSG" ]; then
     MSG="GhostScript Toast"
 fi
+
+# 1. Trigger floating WindowManager Overlay via Service
+am startservice -n com.ayoub.ghostscript2/.ToastOverlayService --es text "${'$'}MSG" >/dev/null 2>&1
+
+# 2. Trigger Foreground Trampoline Activity
+am start -n com.ayoub.ghostscript2/.ToastActivity --es text "${'$'}MSG" --activity-no-animation >/dev/null 2>&1
+
+# 3. Trigger Broadcast receiver
 am broadcast -a com.ayoub.ghostscript2.SHOW_TOAST --es text "${'$'}MSG" >/dev/null 2>&1
 """.trimIndent()
-            val target = File("/data/local/tmp/toast")
             exec("cat << 'EOF' > /data/local/tmp/toast\n$scriptContent\nEOF\nchmod 777 /data/local/tmp/toast")
-            Log.i(TAG, "CLI toast tool installed at /data/local/tmp/toast")
+            Log.i(TAG, "CLI toast tool and overlay permissions configured successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up CLI toast wrapper", e)
         }

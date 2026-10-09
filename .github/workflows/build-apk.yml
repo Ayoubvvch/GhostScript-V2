@@ -33,35 +33,34 @@ jobs:
       - name: Prepare APK for Release
         run: |
           mkdir -p release-output
-          cp app/build/outputs/apk/debug/app-debug.apk release-output/GhostScript-v2.0.0.apk
+          cp app/build/outputs/apk/debug/app-debug.apk release-output/GhostScript-v2.1.0.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GhostScript-v2.0.0-APK
-          path: release-output/GhostScript-v2.0.0.apk
+          name: GhostScript-v2.1.0-APK
+          path: release-output/GhostScript-v2.1.0.apk
           if-no-files-found: error
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: v2.0.0
-          name: "GhostScript Root V2.0.0 - Distraction Suspend & Toast Messenger Edition"
+          tag_name: v2.1.0
+          name: "GhostScript Root V2.1.0 - WindowManager Overlay & Trampoline Toast Edition"
           body: |
-            ### 👻 GhostScript Root V2.0.0: Distraction Suspend & Toast Messenger Edition
+            ### 👻 GhostScript Root V2.1.0: WindowManager Overlay & Trampoline Toast Edition
 
-            - **Installs Side-by-Side:** Runs concurrently alongside GhostScript V1 with unique package ID `com.ayoub.ghostscript2`.
-            - **Social Media Distraction Blocker (pm suspend):**
-              - Clean, safe package suspension without iptables tampering.
-              - Completely disables social media notifications and apps during study sessions while keeping ChatGPT, Gemini, and learning tools untouched.
-              - Autonomous timer to auto-unsuspend with celebratory toast.
-            - **Shell-Driven Toast & Wisdom Messenger:**
-              - Public BroadcastReceiver `com.ayoub.ghostscript2.SHOW_TOAST` to pop up toasts on screen from any script or terminal command.
-              - Pre-installed CLI tool `/data/local/tmp/toast "<message>"`.
-              - Wisdom quotes library featuring Einstein, Marcus Aurelius, Ibn Khaldun, Steve Jobs, Seneca, etc.
-            - **Smart Sleep & Autonomous Micro-Tasks:**
-              - Screen sleep timer, media pause, drops pagecache RAM clean, scheduled shutdown/reboot.
-          files: release-output/GhostScript-v2.0.0.apk
+            - **Guaranteed Floating Overlay & Toast Bypass:**
+              - Fixes Android 11+ background toast suppression completely.
+              - Implements `ToastOverlayService` using `WindowManager` `TYPE_APPLICATION_OVERLAY` (identical to Termux-Toast architecture).
+              - Implements 0-ms transparent `ToastActivity` trampoline for native system toasts.
+              - Auto-grants `SYSTEM_ALERT_WINDOW` permission via root (`appops set com.ayoub.ghostscript2 SYSTEM_ALERT_WINDOW allow`).
+              - Enhanced `/data/local/tmp/toast "<message>"` CLI script triggering both overlay and toast.
+            - **Social Distraction Blocker (pm suspend):**
+              - Freezes social distractions during study sessions, preserving ChatGPT, Gemini, and browsers with full internet.
+            - **Wisdom & Quotes Messenger:**
+              - Displays quotes from Einstein, Marcus Aurelius, Ibn Khaldun, and custom phrases.
+          files: release-output/GhostScript-v2.1.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
